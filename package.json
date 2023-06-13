@@ -1,0 +1,25 @@
+{
+  "name": "typescript-parcel-base",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "prod": "parcel build src/index.html",
+    "lint": "eslint --ext .ts  src/",
+    "lint:fix": "eslint --ext .ts,.tsx  src/ --fix"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "devDependencies": {
+    "@parcel/transformer-typescript-tsc": "^2.8.3",
+    "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "parcel": "^2.8.3",
+    "pre-commit": "^1.2.2",
+    "typescript": "^4.9.4"
+  }
+}
