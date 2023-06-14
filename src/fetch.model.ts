@@ -17,7 +17,7 @@ export interface FetchAuthenticate {
   errorCallback?: (error: Error) => void;
 }
 
-export interface FetchParams<T = undefined> {
+export interface FetchParams<T = any> {
   method?: FetchRequestMethod;
   type?: FetchResponseType;
   data?: T;
