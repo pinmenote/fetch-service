@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "author": "Michal Szczepanski",
   "license": "MIT",
+  "description": "fetch wrapper with timeout and retry with refresh token",
   "bugs": {
     "url": "https://github.com/pinmenote/fetch-service/issues"
   },
