@@ -1,6 +1,12 @@
 {
-  "name": "typescript-parcel-base",
+  "name": "@pinmenote/fetch-service",
   "version": "0.0.1",
+  "author": "Michal Szczepanski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pinmenote/fetch-service/issues"
+  },
+  "homepage": "https://github.com/pinmenote/fetch-service#readme",
   "source": "src/fetch.service.ts",
   "module": "dist/module.js",
   "types": "dist/types.d.ts",
