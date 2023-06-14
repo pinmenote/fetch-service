@@ -1,27 +1,5 @@
-/*
- * MIT License
- * Copyright (c) 2023 Michal Szczepanski
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
 import { FetchAuthenticate, FetchParams, FetchResponse, FetchResponseType } from './fetch.model';
-import { debugLog } from './debug.log';
+import { fnConsoleLog } from './fn.console.log';
 
 export class FetchService {
   private static assignDefaultParams(params: FetchParams) {
@@ -43,16 +21,17 @@ export class FetchService {
     });
   }
 
-  private static _fetch = (
+  private static _fetch = <T>(
     url: string,
     params: FetchParams,
-    resolve: (value: any, ok: boolean, status: number) => void,
+    resolve: (value: FetchResponse<T>) => void,
     reject: (error: Error) => void
-  ) => {
+  ): void => {
+    fnConsoleLog('FetchService->_fetch', url, params);
     const headers = this.applyDefaultHeaders(params.headers);
     // timeout
     const timeout = setTimeout(() => {
-      debugLog('FetchService->timeout', url);
+      fnConsoleLog('FetchService->timeout', url);
       reject(new Error(`Timeout ${url}`));
     }, params.timeout);
     fetch(url, {
@@ -61,9 +40,11 @@ export class FetchService {
     })
       .then((req) => {
         this.getResponse(req, params.type!)
-          .then((res) => {
+          .then((data) => {
             clearTimeout(timeout);
-            resolve(res, req.ok, req.status);
+            fnConsoleLog('FetchService->_fetch->resolve', req.ok, 'status', req.status);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            resolve({ url, type: params.type!, status: req.status, data, ok: req.ok });
           })
           .catch((e: Error) => reject(e));
       })
@@ -78,12 +59,12 @@ export class FetchService {
     return new Promise((resolve, reject) => {
       try {
         auth.refreshToken;
-        this._fetch(
+        this._fetch<T>(
           url,
           params,
-          (res, ok) => {
+          (res) => {
             //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (!ok && res[auth.refreshToken.key] === auth.refreshToken.value) {
+            if (!res.ok && (res.data as any)[auth.refreshToken.key] === auth.refreshToken.value) {
               this.refreshToken(params, auth)
                 .then(() => {
                   this._fetch(url, params, resolve, reject);
@@ -96,28 +77,32 @@ export class FetchService {
           }
         );
       } catch (e) {
-        debugLog('Error FetchService->refetch', e);
+        fnConsoleLog('Error FetchService->refetch', e);
       }
     });
   };
 
   private static refreshToken(params: FetchParams, auth: FetchAuthenticate): Promise<void> {
-    debugLog('FetchService->refreshToken', auth.refreshToken.url);
-    const headers = this.applyDefaultHeaders(params.headers);
-    this._fetch(
-      auth.refreshToken.url,
-      {
-        method: auth.refreshToken.method,
-        headers,
-        timeout: params.timeout
-      },
-      (value, ok, status) => {
-        if (ok && auth.successCallback) auth.successCallback(value, params.headers);
-      },
-      (error) => {
-        if (auth.errorCallback) auth.errorCallback(error);
-      }
-    );
+    fnConsoleLog('FetchService->refreshToken', auth.refreshToken.url);
+    return new Promise<void>((resolve, reject) => {
+      const headers = this.applyDefaultHeaders(params.headers);
+      this._fetch(
+        auth.refreshToken.url,
+        {
+          method: auth.refreshToken.method,
+          headers,
+          timeout: params.timeout
+        },
+        (res) => {
+          if (res.ok && auth.successCallback) auth.successCallback(res, params.headers);
+          resolve();
+        },
+        (error) => {
+          if (auth.errorCallback) auth.errorCallback(error);
+          reject(error);
+        }
+      );
+    });
   }
 
   private static applyDefaultHeaders(headers?: { [key: string]: string }): { [key: string]: string } {

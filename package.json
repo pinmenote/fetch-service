@@ -12,6 +12,7 @@
   "types": "dist/types.d.ts",
   "scripts": {
     "build": "parcel build",
+    "dev": "NODE_ENV=development parcel build",
     "lint": "eslint --ext .ts  src/",
     "lint:fix": "eslint --ext .ts,.tsx  src/ --fix"
   },
