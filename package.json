@@ -1,6 +1,6 @@
 {
   "name": "@pinmenote/fetch-service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Michal Szczepanski",
   "license": "MIT",
   "description": "fetch wrapper with timeout and retry with refresh token",
