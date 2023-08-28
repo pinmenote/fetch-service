@@ -1,4 +1,4 @@
-import { FetchAuthenticate, FetchParams, FetchResponse, FetchResponseType } from './fetch.model';
+import { FetchParams, FetchResponse, FetchResponseType, RefreshTokenParams } from './fetch.model';
 import { fnConsoleLog } from './fn.console.log';
 
 export class FetchService {
@@ -8,11 +8,15 @@ export class FetchService {
     if (!params.timeout) params.timeout = 15000;
   }
 
-  static async fetch<T>(url: string, params: FetchParams, auth?: FetchAuthenticate): Promise<FetchResponse<T>> {
+  static async fetch<T>(
+    url: string,
+    params: FetchParams,
+    refreshParams?: RefreshTokenParams
+  ): Promise<FetchResponse<T>> {
     this.assignDefaultParams(params);
     return new Promise((resolve, reject) => {
-      if (auth) {
-        this.refetch<T>(url, params, auth)
+      if (refreshParams) {
+        this.refetch<T>(url, params, refreshParams)
           .then((res) => resolve(res))
           .catch((e) => reject(e));
       } else {
@@ -56,18 +60,17 @@ export class FetchService {
   private static refetch = async <T>(
     url: string,
     params: FetchParams,
-    auth: FetchAuthenticate
+    refreshParams: RefreshTokenParams
   ): Promise<FetchResponse<T>> => {
     return new Promise((resolve, reject) => {
       try {
-        auth.refreshToken;
         this._fetch<T>(
           url,
           params,
           (res) => {
             //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (!res.ok && (res.data as any)[auth.refreshToken.key] === auth.refreshToken.value) {
-              this.refreshToken(params, auth)
+            if (!res.ok && (res.data as any)[refreshParams.data.refreshKey] === refreshParams.data.refreshValue) {
+              this.refreshToken(params, refreshParams)
                 .then(() => {
                   this._fetch(url, params, resolve, reject);
                 })
@@ -84,23 +87,23 @@ export class FetchService {
     });
   };
 
-  private static refreshToken(params: FetchParams, auth: FetchAuthenticate): Promise<void> {
-    fnConsoleLog('FetchService->refreshToken', auth.refreshToken.url);
+  private static refreshToken(params: FetchParams, refreshParams: RefreshTokenParams): Promise<void> {
+    fnConsoleLog('FetchService->refreshToken', refreshParams.data.url);
     return new Promise<void>((resolve, reject) => {
       const headers = this.applyDefaultHeaders(params.headers);
       this._fetch(
-        auth.refreshToken.url,
+        refreshParams.data.url,
         {
-          method: auth.refreshToken.method,
+          method: refreshParams.data.method,
           headers,
           timeout: params.timeout
         },
         (res) => {
-          if (res.ok && auth.successCallback) auth.successCallback(res, params.headers);
+          if (res.ok && refreshParams.successCallback) refreshParams.successCallback(res, params.headers);
           resolve();
         },
         (error) => {
-          if (auth.errorCallback) auth.errorCallback(error);
+          if (refreshParams.errorCallback) refreshParams.errorCallback(error);
           reject(error);
         }
       );

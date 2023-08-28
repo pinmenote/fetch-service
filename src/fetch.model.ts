@@ -4,15 +4,15 @@ export type FetchRequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | '
 
 export type FetchHeaders = { [key: string]: string };
 
-export interface FetchRefreshToken {
+export interface RefreshTokenData {
   url: string;
-  key: string;
-  value: string;
+  refreshKey: string;
+  refreshValue: string;
   method: FetchRequestMethod;
 }
 
-export interface FetchAuthenticate {
-  refreshToken: FetchRefreshToken;
+export interface RefreshTokenParams {
+  data: RefreshTokenData;
   successCallback?: (data: any, headers?: FetchHeaders) => void;
   errorCallback?: (error: Error) => void;
 }
