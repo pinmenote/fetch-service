@@ -16,9 +16,7 @@ export class FetchService {
     this.assignDefaultParams(params);
     return new Promise((resolve, reject) => {
       if (refreshParams) {
-        this.refetch<T>(url, params, refreshParams)
-          .then((res) => resolve(res))
-          .catch((e) => reject(e));
+        this.refetch<T>(url, params, refreshParams, resolve, reject);
       } else {
         this._fetch(url, params, resolve, reject);
       }
@@ -28,15 +26,15 @@ export class FetchService {
   private static _fetch = <T>(
     url: string,
     params: FetchParams,
-    resolve: (value: FetchResponse<T>) => void,
-    reject: (error: Error) => void
+    resolveFetch: (value: FetchResponse<T>) => void,
+    rejectFetch: (error: Error) => void
   ): void => {
-    fnConsoleLog('FetchService->_fetch', url, params);
+    fnConsoleLog('FetchService->_fetch', url);
     const headers = this.applyDefaultHeaders(params.headers);
     // timeout
     const timeout = setTimeout(() => {
       fnConsoleLog('FetchService->timeout', url);
-      reject(new Error(`Timeout ${url}`));
+      rejectFetch(new Error(`Timeout ${url}`));
     }, params.timeout);
     fetch(url, {
       method: params.method,
@@ -44,47 +42,45 @@ export class FetchService {
       //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       body: params.body
     })
-      .then((req) => {
-        this.getResponse(req, params.type!)
+      .then((res) => {
+        this.getResponse(res, params.type!)
           .then((data) => {
             clearTimeout(timeout);
-            fnConsoleLog('FetchService->_fetch->resolve', req.ok, 'status', req.status);
+            fnConsoleLog('FetchService->_fetch->resolve', res.ok, 'status', res.status);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            resolve({ url, type: params.type!, status: req.status, data, ok: req.ok });
+            resolveFetch({ url, type: params.type!, status: res.status, data, ok: res.ok });
           })
-          .catch((e: Error) => reject(e));
+          .catch((e: Error) => rejectFetch(e));
       })
-      .catch((e: Error) => reject(e));
+      .catch((e: Error) => rejectFetch(e));
   };
 
-  private static refetch = async <T>(
+  private static refetch = <T>(
     url: string,
     params: FetchParams,
-    refreshParams: RefreshTokenParams
-  ): Promise<FetchResponse<T>> => {
-    return new Promise((resolve, reject) => {
-      try {
-        this._fetch<T>(
-          url,
-          params,
-          (res) => {
-            //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (!res.ok && (res.data as any)[refreshParams.data.refreshKey] === refreshParams.data.refreshValue) {
-              this.refreshToken(params, refreshParams)
-                .then(() => {
-                  this._fetch(url, params, resolve, reject);
-                })
-                .catch((e) => reject(e));
-            }
-          },
-          (error) => {
-            reject(error);
-          }
-        );
-      } catch (e) {
-        fnConsoleLog('Error FetchService->refetch', e);
+    refreshParams: RefreshTokenParams,
+    resolveFetch: (value: FetchResponse<T>) => void,
+    rejectFetch: (error: Error) => void
+  ): void => {
+    this._fetch<T>(
+      url,
+      params,
+      (res) => {
+        //eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (!res.ok && (res.data as any)[refreshParams.data.refreshKey] === refreshParams.data.refreshValue) {
+          this.refreshToken(params, refreshParams)
+            .then(() => {
+              this._fetch(url, params, resolveFetch, rejectFetch);
+            })
+            .catch((e: Error) => rejectFetch(e));
+        } else {
+          resolveFetch(res);
+        }
+      },
+      (error) => {
+        rejectFetch(error);
       }
-    });
+    );
   };
 
   private static refreshToken(params: FetchParams, refreshParams: RefreshTokenParams): Promise<void> {
