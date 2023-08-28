@@ -13,7 +13,7 @@ export interface RefreshTokenData {
 
 export interface RefreshTokenParams {
   data: RefreshTokenData;
-  successCallback?: (data: any, headers?: FetchHeaders) => void;
+  successCallback?: (res: any, headers?: FetchHeaders) => FetchHeaders;
   errorCallback?: (error: Error) => void;
 }
 

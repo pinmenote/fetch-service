@@ -95,7 +95,9 @@ export class FetchService {
           timeout: params.timeout
         },
         (res) => {
-          if (res.ok && refreshParams.successCallback) refreshParams.successCallback(res, params.headers);
+          if (res.ok && refreshParams.successCallback) {
+            params.headers = refreshParams.successCallback(res);
+          }
           resolve();
         },
         (error) => {
