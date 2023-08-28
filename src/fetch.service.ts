@@ -36,7 +36,9 @@ export class FetchService {
     }, params.timeout);
     fetch(url, {
       method: params.method,
-      headers
+      headers,
+      //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      body: params.body
     })
       .then((req) => {
         this.getResponse(req, params.type!)

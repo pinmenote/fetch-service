@@ -20,7 +20,7 @@ export interface FetchAuthenticate {
 export interface FetchParams<T = any> {
   method?: FetchRequestMethod;
   type?: FetchResponseType;
-  data?: T;
+  body?: T;
   timeout?: number;
   headers?: FetchHeaders;
 }
