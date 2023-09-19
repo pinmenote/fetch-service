@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -r dist
+rm -r .parcel-cache
+npm run release

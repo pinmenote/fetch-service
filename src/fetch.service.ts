@@ -30,7 +30,7 @@ export class FetchService {
     rejectFetch: (error: Error) => void
   ): void => {
     fnConsoleLog('FetchService->_fetch', url);
-    const headers = this.applyDefaultHeaders(params.headers);
+    const headers = params.headers ? params.headers : this.applyDefaultHeaders(params.headers);
     // timeout
     const timeout = setTimeout(() => {
       fnConsoleLog('FetchService->timeout', url);
@@ -110,11 +110,12 @@ export class FetchService {
 
   private static applyDefaultHeaders(headers?: { [key: string]: string }): { [key: string]: string } {
     if (!headers) headers = {};
-    else if (!('Content-Type' in headers))
-      Object.assign(headers, {
+    return Object.assign(
+      {
         'Content-Type': 'application/json'
-      });
-    return headers;
+      },
+      headers
+    );
   }
 
   private static getResponse = async (req: Response, type: FetchResponseType): Promise<any> => {
