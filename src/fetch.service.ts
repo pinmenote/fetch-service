@@ -110,9 +110,10 @@ export class FetchService {
 
   private static applyDefaultHeaders(headers?: { [key: string]: string }): { [key: string]: string } {
     if (!headers) headers = {};
-    Object.assign(headers, {
-      'Content-Type': 'application/json'
-    });
+    else if (!('Content-Type' in headers))
+      Object.assign(headers, {
+        'Content-Type': 'application/json'
+      });
     return headers;
   }
 
