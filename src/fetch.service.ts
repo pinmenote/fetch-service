@@ -29,7 +29,7 @@ export class FetchService {
     resolveFetch: (value: FetchResponse<T>) => void,
     rejectFetch: (error: Error) => void
   ): void => {
-    fnConsoleLog('FetchService->_fetch', url);
+    // fnConsoleLog('FetchService->_fetch', url);
     const headers = params.headers ? params.headers : this.applyDefaultHeaders(params.headers);
     // timeout
     const timeout = setTimeout(() => {
@@ -46,7 +46,7 @@ export class FetchService {
         this.getResponse(res, params.type!)
           .then((data) => {
             clearTimeout(timeout);
-            fnConsoleLog('FetchService->_fetch->resolve', res.ok, 'status', res.status);
+            // fnConsoleLog('FetchService->_fetch->resolve', res.ok, 'status', res.status);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             resolveFetch({ url, type: params.type!, status: res.status, data, ok: res.ok });
           })
