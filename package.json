@@ -12,7 +12,7 @@
   "module": "dist/module.js",
   "types": "dist/types.d.ts",
   "scripts": {
-    "build": "npm run prod && npm run uglify",
+    "release": "npm run prod && npm run uglify",
     "dev": "NODE_ENV=development parcel build",
     "prod": "parcel build --no-source-maps",
     "uglify": "uglifyjs --compress --mangle -o dist/module.js -- dist/module.js",
