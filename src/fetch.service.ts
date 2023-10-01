@@ -30,7 +30,7 @@ export class FetchService {
     rejectFetch: (error: Error) => void
   ): void => {
     // fnConsoleLog('FetchService->_fetch', url);
-    const headers = params.headers ? params.headers : this.applyDefaultHeaders(params.headers);
+    const headers = params.headers ? params.headers : this.applyDefaultHeaders(params.headers, params.type);
     // timeout
     const timeout = setTimeout(() => {
       fnConsoleLog('FetchService->timeout', url);
@@ -38,7 +38,7 @@ export class FetchService {
     }, params.timeout);
     fetch(url, {
       method: params.method,
-      headers,
+      headers: new Headers(headers),
       //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       body: params.body
     })
@@ -108,14 +108,19 @@ export class FetchService {
     });
   }
 
-  private static applyDefaultHeaders(headers?: { [key: string]: string }): { [key: string]: string } {
+  private static applyDefaultHeaders(
+    headers?: { [key: string]: string },
+    type?: FetchResponseType
+  ): { [key: string]: string } {
     if (!headers) headers = {};
-    return Object.assign(
-      {
-        'Content-Type': 'application/json'
-      },
-      headers
-    );
+    return !type || type === 'JSON'
+      ? Object.assign(
+          {
+            'Content-Type': 'application/json'
+          },
+          headers
+        )
+      : headers;
   }
 
   private static getResponse = async (req: Response, type: FetchResponseType): Promise<any> => {
