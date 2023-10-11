@@ -96,7 +96,7 @@ export class FetchService {
         },
         (res) => {
           if (res.ok && refreshParams.successCallback) {
-            params.headers = refreshParams.successCallback(res);
+            params.headers = refreshParams.successCallback(res, params.headers);
           }
           resolve();
         },
